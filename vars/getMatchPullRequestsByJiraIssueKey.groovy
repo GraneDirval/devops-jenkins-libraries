@@ -7,10 +7,10 @@ def call(String jiraIssueKey, String whitelistedDestination) {
     def openedPullRequestsList = fetchOpenedPullRequestIds()
 
     def result = [];
-    for (item in openedPullRequestsList) {
+    for (id in openedPullRequestsList) {
 
         print "Retrieveing data for pull request: " + id + "... ";
-        def pullRequest = fetchPullRequestData(item);
+        def pullRequest = fetchPullRequestData(id);
         def destinationReference = pullRequest.pullRequestTargets.destinationReference[0];
 
         if (destinationReference != whitelistedDestination) {

@@ -1,12 +1,12 @@
 import groovy.json.JsonSlurper
 import hudson.model.*
 
-def call(String jiraIssueKey, String whitelistedDestination) {
+LinkedHashMap call(String jiraIssueKey, String whitelistedDestination) {
 
     println "Retrieveing opened pull requests..."
     def openedPullRequestsList = fetchOpenedPullRequestIds()
 
-    LinkedHashMap result = [];
+    def result = ['result':false];
     for (id in openedPullRequestsList) {
 
         print "Retrieveing data for pull request: " + id + "... ";
@@ -33,14 +33,11 @@ def call(String jiraIssueKey, String whitelistedDestination) {
             if (expression.find()) {
                 println "`$attribute`  matched `$pattern`.";
 
-                def pullRequestData = [
-                        'PULL_REQUEST_ID': pullRequest.pullRequestId,
-                        'SOURCE_COMMIT'  : pullRequest.pullRequestTargets.sourceCommit[0],
+                return [
+                    'result' : true,
+                    'PULL_REQUEST_ID': pullRequest.pullRequestId,
+                    'SOURCE_COMMIT'  : pullRequest.pullRequestTargets.sourceCommit[0],
                 ]
-
-                result = pullRequestData;
-
-                break;
             } else {
                 println "`$attribute`  does not match `$pattern`. Ignored";
             }

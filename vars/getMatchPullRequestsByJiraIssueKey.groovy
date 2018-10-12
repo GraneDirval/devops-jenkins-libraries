@@ -6,7 +6,7 @@ def call(String jiraIssueKey, String whitelistedDestination) {
     println "Retrieveing opened pull requests..."
     def openedPullRequestsList = fetchOpenedPullRequestIds()
 
-    def result = [];
+    LinkedHashMap result = [];
     for (id in openedPullRequestsList) {
 
         print "Retrieveing data for pull request: " + id + "... ";
@@ -38,7 +38,7 @@ def call(String jiraIssueKey, String whitelistedDestination) {
                         'SOURCE_COMMIT'  : pullRequest.pullRequestTargets.sourceCommit[0],
                 ]
 
-                result << pullRequestData;
+                result = pullRequestData;
 
                 break;
             } else {

@@ -69,6 +69,8 @@ Boolean checkIfMergeable(String repositoryName, String destinationCommit, String
             "merge-option"                : "FAST_FORWARD_MERGE",
     ])
 
+    print parsedInfo;
+
     return parsedInfo.mergeable;
 }
 

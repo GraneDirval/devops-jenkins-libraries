@@ -30,16 +30,16 @@ def call(String pullRequestId, String jiraIssueKey) {
         if (isMerged) {
 
             println "Merge was successful."
-            /*def expression = (sourceReference =~ /refs\/heads\/(.*)/)
 
-            if (expression.find()) {
-                String branchName = expression.group(1)
+            def branchName = extractBranchName(sourceReference);
+
+            if(branchName){
                 executeAWSCliCommand("codecommit", "delete-branch", [
                         "branch-name"    : branchName,
                         "repository-name": repositoryName
                 ])
                 println "Branch $branchName was deleted"
-            }*/
+            }
 
             jiraComment body: "Successfully merged PR-$pullRequestId", issueKey: jiraIssueKey
 
@@ -58,6 +58,15 @@ def call(String pullRequestId, String jiraIssueKey) {
     }
 
 
+}
+
+def extractBranchName(String reference){
+    def expression = (sourceReference =~ /refs\/heads\/(.*)/)
+    if (expression.find()) {
+        return expression.group(1)
+    }else{
+        return  null;
+    }
 }
 
 Boolean checkIfMergeable(String repositoryName, String destinationCommit, String sourceCommit) {

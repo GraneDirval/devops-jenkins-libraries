@@ -32,7 +32,7 @@ def call(String pullRequestId, String jiraIssueKey) {
             println "Merge was successful."
             def expression = (sourceReference =~ /refs\/heads\/(.*)/)
 
-            if (expression.match()) {
+            if (expression.find()) {
                 String branchName = expression.group(1)
                 executeAWSCliCommand("codecommit", "delete-branch", [
                         "branch-name"    : branchName,

@@ -6,7 +6,6 @@ Boolean call(String idOrKey, String transitionName){
     print result;
     for (transition in result.data.transitions){
 
-        print transition;
         if (transition.name == transitionName){
             jiraTransitionIssue idOrKey: idOrKey, input: [transition: [id: transition.id]]
             return  true;

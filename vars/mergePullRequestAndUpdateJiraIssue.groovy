@@ -2,14 +2,13 @@ import groovy.json.JsonSlurperClassic
 
 def call(String pullRequestId, String jiraIssueKey) {
 
-    def data = executeAWSCliCommand("aws codecommit get-pull-request --pull-request-id $pullRequestId");
-
+    def data = executeAWSCliCommand("codecommit", "get-pull-request", ["pull-request-id": pullRequestId]);
     def pullRequest = data.pullRequest
     def target = pullRequest.pullRequestTargets[0];
 
     String status = pullRequest.pullRequestStatus;
     String repositoryName = target.repositoryName;
-
+    String sourceReference = target.sourceReference;
 
     if (status != 'OPEN') {
         println "Request status is not valid. Expected 'OPEN', actual '$status'"
@@ -22,11 +21,25 @@ def call(String pullRequestId, String jiraIssueKey) {
 
     if (isMergeable) {
 
-        isMerged = executeAWSCliCommand("aws codecommit merge-pull-request-by-fast-forward --pull-request-id $pullRequestId --repository-name $repositoryName")
+        println "PR is mergeable. Merging."
+        isMerged = executeAWSCliCommand("codecommit", "merge-pull-request-by-fast-forward", [
+                "pull-request-id": pullRequestId,
+                "repository-name": repositoryName
+        ])
 
         if (isMerged) {
-            print('delete brnach')
-            /*executeAWSCliCommand("aws codecommit delete-branch --branch-name $BRANCH_NAME --repository-name $repositoryName")*/
+
+            println "Merge was successful."
+            def expression = (sourceReference =~ /refs\/heads\/(.*)/)
+
+            if (expression.match()) {
+                String branchName = expression.group(1)
+                executeAWSCliCommand("codecommit", "delete-branch", [
+                        "branch-name"    : branchName,
+                        "repository-name": repositoryName
+                ])
+                println "Branch $branchName was deleted"
+            }
 
             jiraComment body: "Successfully merged PR-$pullRequestId", issueKey: jiraIssueKey
 
@@ -49,19 +62,24 @@ def call(String pullRequestId, String jiraIssueKey) {
 
 Boolean checkIfMergeable(String repositoryName, String destinationCommit, String sourceCommit) {
 
-    String shellScript = "aws codecommit get-merge-conflicts " +
-            "--repository-name $repositoryName " +
-            "--destination-commit-specifier $destinationCommit " +
-            "--source-commit-specifier $sourceCommit " +
-            "--merge-option FAST_FORWARD_MERGE"
-
-    def parsedInfo = executeAWSCliCommand(shellScript)
+    def parsedInfo = executeAWSCliCommand("codecommit", "get-merge-conflicts", [
+            "repository-name"             : repositoryName,
+            "destination-commit-specifier": destinationCommit,
+            "source-commit-specifier"     : sourceCommit,
+            "merge-option"                : "FAST_FORWARD_MERGE",
+    ])
 
     return parsedInfo.mergeable;
 }
 
 
-def executeAWSCliCommand(String shellScript) {
+def executeAWSCliCommand(String service, String command, parameters) {
+
+    String shellScript = "aws $service $command";
+
+    for (item in parameters) {
+        shellScript += " --$item.key $item.value"
+    }
 
     def result = (shellScript.execute().text)
 

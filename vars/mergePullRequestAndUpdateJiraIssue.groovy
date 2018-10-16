@@ -12,7 +12,7 @@ def call(String pullRequestId, String jiraIssueKey) {
 
     if (status != 'OPEN') {
         println "Request status is not valid. Expected 'OPEN', actual '$status'"
-        return;
+        return 'invalid_status';
     }
 
 
@@ -24,7 +24,7 @@ def call(String pullRequestId, String jiraIssueKey) {
         jiraComment body: "Cannot merge PR-$pullRequestId.\nPlease resolve branch conflicts.", issueKey: jiraIssueKey
         jiraTransitionIssueByName(jiraIssueKey, "Merge Failed")
 
-        return;
+        return 'is_not_mergeable';
     }
 
     println "PR is mergeable. Merging."
@@ -36,7 +36,7 @@ def call(String pullRequestId, String jiraIssueKey) {
 
     if (!isMerged) {
         println "Error has been occured during merging of pull request #$pullRequestId"
-        return;
+        return 'merge_error';
     }
 
 
@@ -52,6 +52,8 @@ def call(String pullRequestId, String jiraIssueKey) {
     }
 
     jiraComment body: "Successfully merged PR-$pullRequestId", issueKey: jiraIssueKey
+
+    return 'success'
 
 }
 

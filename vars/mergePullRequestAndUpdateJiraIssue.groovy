@@ -16,69 +16,66 @@ def call(String pullRequestId, String jiraIssueKey) {
     }
 
 
-    Boolean isMerged = false;
     Boolean isMergeable = checkIfMergeable(target.repositoryName, target.destinationCommit, target.sourceCommit)
 
-    if (isMergeable) {
-
-        println "PR is mergeable. Merging."
-        isMerged = executeAWSCliCommand("codecommit", "merge-pull-request-by-fast-forward", [
-                "pull-request-id": pullRequestId,
-                "repository-name": repositoryName
-        ])
-
-        if (isMerged) {
-
-            println "Merge was successful."
-
-            def branchName = extractBranchName(sourceReference);
-
-            if(branchName){
-                executeAWSCliCommand("codecommit", "delete-branch", [
-                        "branch-name"    : branchName,
-                        "repository-name": repositoryName
-                ])
-                println "Branch $branchName was deleted"
-            }
-
-            jiraComment body: "Successfully merged PR-$pullRequestId", issueKey: jiraIssueKey
-
-        }
-    }
-
     if (!isMergeable) {
+
         println "Pull Request #$pullRequestId cannot be merged. Performing Jira changes"
-
         jiraComment body: "Cannot merge PR-$pullRequestId.\nPlease resolve branch conflicts.", issueKey: jiraIssueKey
-
         jiraTransitionIssueByName(jiraIssueKey, "Merge Failed")
 
-    } else if (isMergeable && !isMerged) {
+        return;
+    }
+
+    println "PR is mergeable. Merging."
+    isMerged = executeAWSCliCommand("codecommit", "merge-pull-request-by-fast-forward", [
+            "pull-request-id": pullRequestId,
+            "repository-name": repositoryName
+    ])
+
+
+    if (!isMerged) {
         println "Error has been occured during merging of pull request #$pullRequestId"
+        return;
     }
 
 
+    println "Merge was successful."
+
+    def branchName = extractBranchName(sourceReference);
+    if (branchName) {
+        executeAWSCliCommand("codecommit", "delete-branch", [
+                "branch-name"    : branchName,
+                "repository-name": repositoryName
+        ])
+        println "Branch $branchName was deleted"
+    }
+
+    jiraComment body: "Successfully merged PR-$pullRequestId", issueKey: jiraIssueKey
+
 }
 
-def extractBranchName(String reference){
-    def expression = (sourceReference =~ /refs\/heads\/(.*)/)
+def extractBranchName(String reference) {
+    def expression = (reference =~ /refs\/heads\/(.*)/)
     if (expression.find()) {
         return expression.group(1)
-    }else{
-        return  null;
+    } else {
+        return null;
     }
 }
 
-Boolean checkIfMergeable(String repositoryName, String destinationCommit, String sourceCommit) {
+def checkIfMergeable(String repositoryName, String destinationCommit, String sourceCommit) {
 
-    def parsedInfo = executeAWSCliCommand("codecommit", "get-merge-conflicts", [
+    def params = [
             "repository-name"             : repositoryName,
             "destination-commit-specifier": destinationCommit,
             "source-commit-specifier"     : sourceCommit,
             "merge-option"                : "FAST_FORWARD_MERGE",
-    ])
+    ];
 
-    print parsedInfo;
+    def parsedInfo = executeAWSCliCommand("codecommit", "get-merge-conflicts", params)
+
+    println parsedInfo;
 
     return parsedInfo.mergeable;
 }

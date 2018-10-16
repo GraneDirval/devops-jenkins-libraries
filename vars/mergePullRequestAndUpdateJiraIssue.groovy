@@ -1,4 +1,4 @@
-import groovy.json.JsonSlurper
+import groovy.json.JsonSlurperClassic
 
 def call(String pullRequestId, String jiraIssueKey) {
 
@@ -38,7 +38,7 @@ def call(String pullRequestId, String jiraIssueKey) {
 
         jiraComment body: "Cannot merge PR-$pullRequestId.\nPlease resolve branch conflicts.", issueKey: jiraIssueKey
 
-        jiraTransitionIssueByName (jiraIssueKey, "Merge Failed")
+        jiraTransitionIssueByName(jiraIssueKey, "Merge Failed")
 
     } else if (isMergeable && !isMerged) {
         println "Error has been occured during merging of pull request #$pullRequestId"
@@ -69,7 +69,7 @@ def executeAWSCliCommand(String shellScript) {
         return null;
     }
 
-    def parsedInfo = new JsonSlurper().parseText(result)
+    def parsedInfo = new JsonSlurperClassic().parseText(result)
 
     return parsedInfo;
 }

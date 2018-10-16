@@ -30,7 +30,7 @@ def call(String pullRequestId, String jiraIssueKey) {
         if (isMerged) {
 
             println "Merge was successful."
-            def expression = (sourceReference =~ /refs\/heads\/(.*)/)
+            /*def expression = (sourceReference =~ /refs\/heads\/(.*)/)
 
             if (expression.find()) {
                 String branchName = expression.group(1)
@@ -39,7 +39,7 @@ def call(String pullRequestId, String jiraIssueKey) {
                         "repository-name": repositoryName
                 ])
                 println "Branch $branchName was deleted"
-            }
+            }*/
 
             jiraComment body: "Successfully merged PR-$pullRequestId", issueKey: jiraIssueKey
 

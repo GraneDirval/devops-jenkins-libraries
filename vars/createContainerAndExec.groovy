@@ -1,6 +1,6 @@
 def call(execScript, image, containerName, workspaceDirectory ){
 
-    def shellScript = '''
+    GString shellScript = """
         docker stop ${containerName} || true
         docker rm ${containerName} || true
     
@@ -8,7 +8,7 @@ def call(execScript, image, containerName, workspaceDirectory ){
     
         docker exec ${containerName} bash -c \"${execScript}\"
         docker stop ${containerName}
-    '''
+    """
     sh shellScript;
 
 }

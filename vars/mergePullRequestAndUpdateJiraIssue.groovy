@@ -36,6 +36,9 @@ def call(String pullRequestId, String jiraIssueKey) {
 
     if (!isMerged) {
         println "Error has been occured during merging of pull request #$pullRequestId"
+        jiraComment body: "Cannot merge PR-$pullRequestId.", issueKey: jiraIssueKey
+        jiraTransitionIssueByName(jiraIssueKey, "Merge Failed")
+
         return 'merge_error';
     }
 

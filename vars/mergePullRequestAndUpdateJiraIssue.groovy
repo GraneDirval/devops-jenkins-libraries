@@ -96,6 +96,8 @@ def executeAWSCliCommand(String service, String command, parameters) {
 
     def result = (shellScript.execute().text)
 
+    print(result);
+
     if (!result) {
         return null;
     }

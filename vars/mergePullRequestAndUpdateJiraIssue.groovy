@@ -16,7 +16,7 @@ def call(String pullRequestId, String jiraIssueKey) {
     }
 
 
-    Boolean isMergeable = checkIfMergeable(target.repositoryName, target.destinationCommit, target.sourceCommit)
+    Boolean isMergeable = checkIfMergeable(target.repositoryName, target.destinationReference, target.sourceReference)
 
     if (!isMergeable) {
 
@@ -36,7 +36,7 @@ def call(String pullRequestId, String jiraIssueKey) {
 
     if (!isMerged) {
         println "Error has been occured during merging of pull request #$pullRequestId"
-        jiraComment body: "Cannot merge PR-$pullRequestId.", issueKey: jiraIssueKey
+        jiraComment body: "Cannot merge PR-$pullRequestId.\nPlease see Jenkins log to see whats was wrong", issueKey: jiraIssueKey
         jiraTransitionIssueByName(jiraIssueKey, "Merge Failed")
 
         return 'merge_error';

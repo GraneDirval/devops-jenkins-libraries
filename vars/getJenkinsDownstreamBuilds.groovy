@@ -1,4 +1,4 @@
-def call(build, Bool isFailedOnly) {
+def call(build, Boolean isFailedOnly) {
   def downstreamBuilds = [];
 
   for (job in Hudson.instance.getAllItems(hudson.model.Job)) {

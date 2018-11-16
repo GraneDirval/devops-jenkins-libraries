@@ -14,7 +14,7 @@ def call(build, Boolean isFailedOnly) {
         } else {
           downstreamBuilds << run;
         }
-        println "Downstream for " + build.getFullDisplayName() + " is " + run.getFullDisplayName()
+        println "Downstream for `" + build.getFullDisplayName() + "` is `" + run.getFullDisplayName() + "`"
       }
     }
   }

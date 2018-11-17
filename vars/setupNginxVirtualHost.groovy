@@ -13,6 +13,7 @@ def call(APP_ID) {
         branchDigitId = 0
     }
     def webserverPort = 49152 + branchDigitId;
+    expression = null;
 
     sh """
        echo "
@@ -31,4 +32,5 @@ def call(APP_ID) {
        "> $nginxConfigFile
        sudo /etc/init.d/nginx reload
        """
+    return true;
 }

@@ -4,7 +4,7 @@ def call(APP_ID) {
     def nginxConfigFile = "/etc/nginx/branches/$APP_ID"
     def branchDigitId
 
-    def pattern = /d+/
+    def pattern = /\d+/
     def expression = (APP_ID =~ pattern)
 
     if (expression.find()) {

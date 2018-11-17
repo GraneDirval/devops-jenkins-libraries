@@ -2,6 +2,10 @@ import groovy.json.JsonOutput
 
 def call(filePath, content) {
     def json = JsonOutput.toJson(content)
-    sh "echo '$json'>$filePath"
-    sh "cat $filePath"
+
+    def shellScript = "echo '$json'>$filePath"
+    shellScript.execute()
+
+    String resolvedContent = ("cat $filePath".execute().text)
+    print resolvedContent
 }

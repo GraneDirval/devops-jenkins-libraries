@@ -1,6 +1,7 @@
 import groovy.json.JsonSlurperClassic
 
 def call(filePath) {
-    def content = sh(script: "cat $filePath", returnStdout: true).trim()
+
+    def content = ("cat $filePath".execute().text.trim())
     return new JsonSlurperClassic().parseText(content);
 }

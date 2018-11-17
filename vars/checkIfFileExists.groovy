@@ -1,6 +1,6 @@
 Boolean call(filePath){
 
-    def res = sh(script: "test -f ${filePath} && echo '1' || echo '0' ", returnStdout: true).trim()
+    def res = ("test -f ${filePath} && echo '1' || echo '0' ".execute().text)
 
     boolean exists = (res == "1")
 

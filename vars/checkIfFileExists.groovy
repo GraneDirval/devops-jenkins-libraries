@@ -1,7 +1,10 @@
 Boolean call(filePath){
 
-    def files = findFiles filePath
-    boolean exists = files.length > 0
+    def res = sh(script: "test -d ${filePath} && echo '1' || echo '0' ", returnStdout: true).trim()
+
+    boolean exists = (res == 1)
 
     return  exists;
+
+
 }

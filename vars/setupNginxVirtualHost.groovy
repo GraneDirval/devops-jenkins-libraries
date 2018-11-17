@@ -16,7 +16,7 @@ def call(APP_ID) {
     expression = null;
 
     sh """
-       echo "
+       echo '
            server {
     
                listen 80;
@@ -29,7 +29,7 @@ def call(APP_ID) {
                    proxy_pass http://127.0.0.1:$webserverPort;               
                }
            }
-       "> $nginxConfigFile
+       '> $nginxConfigFile
        sudo /etc/init.d/nginx reload
        """
     return true;

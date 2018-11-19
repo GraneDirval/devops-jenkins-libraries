@@ -1,6 +1,6 @@
 import groovy.json.JsonSlurperClassic
 
-def call(String pullRequestId, String jiraIssueKey) {
+def call(String pullRequestId) {
 
     def data = executeAWSCliCommand("codecommit", "get-pull-request", ["pull-request-id": pullRequestId]);
     def pullRequest = data.pullRequest
@@ -21,9 +21,6 @@ def call(String pullRequestId, String jiraIssueKey) {
     if (!isMergeable) {
 
         println "Pull Request #$pullRequestId cannot be merged. Performing Jira changes"
-        jiraComment body: "Cannot merge PR-$pullRequestId.\nPlease resolve branch conflicts.", issueKey: jiraIssueKey
-        jiraTransitionIssueByName(jiraIssueKey, "Merge Failed")
-
         return 'is_not_mergeable';
     }
 
@@ -36,9 +33,6 @@ def call(String pullRequestId, String jiraIssueKey) {
 
     if (!isMerged) {
         println "Error has been occured during merging of pull request #$pullRequestId"
-        jiraComment body: "Cannot merge PR-$pullRequestId.\nPlease see Jenkins log to see whats was wrong", issueKey: jiraIssueKey
-        jiraTransitionIssueByName(jiraIssueKey, "Merge Failed")
-
         return 'merge_error';
     }
 
@@ -54,7 +48,6 @@ def call(String pullRequestId, String jiraIssueKey) {
         println "Branch $branchName was deleted"
     }
 
-    jiraComment body: "Successfully merged PR-$pullRequestId", issueKey: jiraIssueKey
 
     return 'success'
 

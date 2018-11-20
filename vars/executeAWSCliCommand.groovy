@@ -1,3 +1,5 @@
+import groovy.json.JsonSlurperClassic
+
 def call(String service, String command, parameters) {
 
   String shellScript = "aws $service $command";

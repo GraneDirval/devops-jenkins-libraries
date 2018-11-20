@@ -1,4 +1,3 @@
-import groovy.json.JsonSlurperClassic
 
 def call(String pullRequestId) {
 

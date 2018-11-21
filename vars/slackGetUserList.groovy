@@ -5,8 +5,30 @@ HashMap call(String apiKey) {
     def parsedInfo = new JsonSlurperClassic().parseText(response)
 
     HashMap profiles = []
+    def emailDomains = [
+        'ama.us',
+        'playwing.net',
+        'playwing.com',
+    ]
+
     for (item in parsedInfo.members) {
-        profiles.put(item.profile.email, item)
+
+        def pattern = '(.*)@.*'
+        def expression = (item.profile.email =~ pattern)
+
+        def userEmailPrefix;
+        if (expression.find()) {
+            userEmailPrefix = expression.group(1);
+        }
+        if(!userEmailPrefix){
+            continue;
+        }
+
+        for (domain in emailDomains){
+            def email = "$userEmailPrefix@$domain"
+            profiles.put(email, item)
+        }
+
     }
 
     return profiles;

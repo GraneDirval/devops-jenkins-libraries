@@ -27,11 +27,13 @@ HashMap call(String apiKey) {
         for (domain in emailDomains){
             def email = "$userEmailPrefix@$domain"
             profiles.put(email, item)
+
+            println "Resolved email $email";
+
         }
 
     }
 
-    println profiles;
 
     return profiles;
 }

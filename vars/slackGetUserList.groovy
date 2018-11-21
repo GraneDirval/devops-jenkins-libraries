@@ -31,5 +31,7 @@ HashMap call(String apiKey) {
 
     }
 
+    println profiles;
+
     return profiles;
 }

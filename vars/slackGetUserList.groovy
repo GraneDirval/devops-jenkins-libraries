@@ -5,6 +5,7 @@ HashMap call(String apiKey) {
     def parsedInfo = new JsonSlurperClassic().parseText(response)
 
     HashMap profiles = []
+
     def emailDomains = [
         'ama.us',
         'playwing.net',
@@ -25,7 +26,7 @@ HashMap call(String apiKey) {
         }
 
         for (domain in emailDomains){
-            def email = "$userEmailPrefix@$domain"
+            def email = "$userEmailPrefix@$domain".trim()
             profiles.put(email, item)
 
             println "Resolved email $email";

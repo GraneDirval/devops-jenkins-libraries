@@ -5,8 +5,6 @@ def call(appConfigFile) {
             BILLING_API_HOST: defaultBillingApiHost,
             DB_UPDATE_TYPE  : 'STAGE_DB_WITH_NEW_MIGRATIONS'
     ]
-
-
     if (checkIfFileExists(appConfigFile)) {
         echo "File exists and no need to rewrite it"
         buildVariables = readExternalJsonFile appConfigFile

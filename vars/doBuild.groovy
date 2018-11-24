@@ -5,6 +5,7 @@ def call(appId, commitHash, appDirectory, buildVariables) {
             [$class: 'GitParameterValue', name: 'COMMIT_HASH', value: commitHash],
             string(name: 'APP_ID', value: appId),
             string(name: 'DIRECTORY_NAME', value: appDirectory),
+            string(name: 'DB_UPDATE_TYPE', value: buildVariables.DB_UPDATE_TYPE),
     ];
 
     return stageBuild;

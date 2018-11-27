@@ -37,6 +37,7 @@ def call(String sqs_body) {
             'PULL_REQUEST_SOURCE_REFERENCE'     : pullRequest.pullRequestTargets.sourceReference[0],
             'PULL_REQUEST_DESTINATION_COMMIT'   : pullRequest.pullRequestTargets.destinationCommit[0],
             'PULL_REQUEST_DESTINATION_REFERENCE': pullRequest.pullRequestTargets.destinationReference[0],
+            'PULL_REQUEST_IS_MERGED'            : pullRequest.pullRequestTargets.mergeMetadata.isMerged
     ]
 
     params.put('PULL_REQUEST_ID', PULL_REQUEST_ID);

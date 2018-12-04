@@ -37,6 +37,7 @@ LinkedHashMap call(String jiraIssueKey, String whitelistedDestination) {
                     'result' : true,
                     'PULL_REQUEST_ID': pullRequest.pullRequestId,
                     'SOURCE_COMMIT'  : pullRequest.pullRequestTargets.sourceCommit[0],
+                    'SOURCE_REFERENCE': pullRequest.pullRequestTargets.sourceReference[0]
                 ]
             } else {
                 println "`$attribute`  does not match `$pattern`. Ignored";

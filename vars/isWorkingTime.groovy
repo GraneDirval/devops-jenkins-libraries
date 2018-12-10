@@ -1,5 +1,7 @@
 Boolean call() {
 
+  def currentDay = getCurrentDayOfWeek();
+
   if ((currentDay == 'Saturday') || (currentDay == 'Sunday')) {
     return false;
   }

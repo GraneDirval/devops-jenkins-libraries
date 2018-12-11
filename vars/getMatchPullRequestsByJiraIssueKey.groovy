@@ -20,7 +20,7 @@ LinkedHashMap call(String jiraIssueKey, String whitelistedDestination) {
 
         def attributes = [
                 pullRequest.pullRequestTargets.sourceReference[0],
-                pullRequest.pullRequestTitle
+                pullRequest.title
         ]
 
         println "Trying to match Issue key with attributes of Pull Request ${pullRequest.pullRequestId}...";

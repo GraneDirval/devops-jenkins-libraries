@@ -1,6 +1,6 @@
-def call(build) {
+LinkedHashMap call(build) {
 
-  def parameters = [];
+  LinkedHashMap parameters = [:];
 
   def p = build?.actions.find { it instanceof ParametersAction }?.parameters
   p.each {

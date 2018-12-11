@@ -1,4 +1,4 @@
-def call(string jobName, Boolean inProgressOnly = false) {
+def call(String jobName, Boolean inProgressOnly = false) {
 
   for (item in Jenkins.instance.items) {
     if (jobName.equals(item.name)) {

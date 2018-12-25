@@ -6,6 +6,25 @@ HashMap call(String apiKey) {
 
     HashMap profiles = []
 
+
+    for (item in parsedInfo.members) {
+
+        def emails = resolvePossibleEmails(item.profile.email)
+
+        for (email in emails){
+
+            println "Resolved email $email";
+            profiles.put(email, item)
+        }
+
+    }
+
+
+    return profiles;
+}
+
+def resolvePossibleEmails(email){
+
     def emailDomains = [
         'ama.us',
         'playwing.net',
@@ -13,29 +32,20 @@ HashMap call(String apiKey) {
         'origin-data.com'
     ]
 
-    for (item in parsedInfo.members) {
+    def pattern = '(.*)@.*'
+    def expression = (email =~ pattern)
 
-        def pattern = '(.*)@.*'
-        def expression = (item.profile.email =~ pattern)
-
-        def userEmailPrefix;
-        if (expression.find()) {
-            userEmailPrefix = expression.group(1);
-        }
-        if(!userEmailPrefix){
-            continue;
-        }
-
-        for (domain in emailDomains){
-            def email = "$userEmailPrefix@$domain".trim()
-            profiles.put(email, item)
-
-            println "Resolved email $email";
-
-        }
-
+    def userEmailPrefix;
+    if (expression.find()) {
+        userEmailPrefix = expression.group(1);
+    }
+    if(!userEmailPrefix){
+        return [];
     }
 
-
-    return profiles;
+    def emails = [];
+    for (domain in emailDomains){
+        emails << "$userEmailPrefix@$domain".trim()
+    }
+    return emails;
 }

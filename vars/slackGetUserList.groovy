@@ -10,6 +10,7 @@ HashMap call(String apiKey) {
         'ama.us',
         'playwing.net',
         'playwing.com',
+        'origin-data.com'
     ]
 
     for (item in parsedInfo.members) {

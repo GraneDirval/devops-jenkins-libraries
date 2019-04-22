@@ -1,4 +1,4 @@
-def call(APP_PREFIX, BILLING_API_HOST, buildCallback){
+def call(CALLBACK_BODY, APP_PREFIX, BILLING_API_HOST, buildCallback){
   node {
 
     def NOTIFICATION_TYPE;
@@ -18,8 +18,7 @@ def call(APP_PREFIX, BILLING_API_HOST, buildCallback){
     def SLACK_USER_NAME;
 
     stage('Parse Notification') {
-      prInfo = getPullRequestInfoByNotification sqs_body;
-
+      prInfo = getPullRequestInfoByNotification CALLBACK_BODY;
       NOTIFICATION_TYPE = prInfo.NOTIFICATION_TYPE
 
       PULL_REQUEST_STATUS = prInfo.PULL_REQUEST_STATUS

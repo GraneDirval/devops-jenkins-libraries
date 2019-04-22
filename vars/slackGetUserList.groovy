@@ -29,6 +29,7 @@ def resolvePossibleEmails(email){
         'ama.us',
         'playwing.net',
         'playwing.com',
+        'origin-data.com'
     ]
 
     def pattern = '(.*)@.*'

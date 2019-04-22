@@ -1,6 +1,5 @@
-def call(appConfigFile) {
+def call(appConfigFile, defaultBillingApiHost) {
     def buildVariables;
-    def defaultBillingApiHost = 'http://billing.playwing.com/api'
     def defaultVariables = [
             BILLING_API_HOST: defaultBillingApiHost,
             DB_UPDATE_TYPE  : 'STAGE_DB_WITH_NEW_MIGRATIONS'

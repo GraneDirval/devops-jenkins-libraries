@@ -1,4 +1,4 @@
-def call(APP_PREFIX, BILLING_API_HOST){
+def call(APP_PREFIX, BILLING_API_HOST, buildCallback){
   node {
 
     def NOTIFICATION_TYPE;
@@ -83,7 +83,7 @@ def call(APP_PREFIX, BILLING_API_HOST){
 
         print buildVariables;
 
-        def stageBuild = doBuild(APP_ID, PULL_REQUEST_SOURCE_COMMIT, appDirectory, buildVariables)
+        def stageBuild = buildCallback(APP_ID, PULL_REQUEST_SOURCE_COMMIT, appDirectory, buildVariables)
 
         if (stageBuild.result == 'FAILURE' || stageBuild.result == 'ABORTED') {
           def failedDownstreamBuilds = getJenkinsDownstreamBuilds(stageBuild, true)

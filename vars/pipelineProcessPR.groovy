@@ -1,4 +1,4 @@
-def call(APP_PREFIX){
+def call(APP_PREFIX, BILLING_API_HOST){
   node {
 
     def NOTIFICATION_TYPE;
@@ -79,8 +79,7 @@ def call(APP_PREFIX){
         sh "mkdir /var/app/${APP_ID}/config -p"
         sh "mkdir $appDirectory/html/web -p"
         // TODO `build in progress` screen
-
-        def buildVariables = resolveBuildVariables(appConfigFile)
+        def buildVariables = resolveBuildVariables(appConfigFile, BILLING_API_HOST)
 
         print buildVariables;
 

@@ -132,7 +132,7 @@ def call(CALLBACK_BODY, APP_PREFIX, BILLING_API_HOST, buildCallback, onCloseCall
       ]
       println "Successfully removed"
       if (PULL_REQUEST_IS_MERGED) {
-        onCloseCallback($PULL_REQUEST_SOURCE_REFERENCE)
+        onCloseCallback(PULL_REQUEST_SOURCE_REFERENCE)
         println "Removed branch";
       }
     }

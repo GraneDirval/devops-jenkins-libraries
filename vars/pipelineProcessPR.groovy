@@ -1,4 +1,4 @@
-def call(CALLBACK_BODY, APP_PREFIX, BILLING_API_HOST, buildCallback){
+def call(CALLBACK_BODY, APP_PREFIX, BILLING_API_HOST, buildCallback, awsProfileName){
   node {
 
     def NOTIFICATION_TYPE;
@@ -18,7 +18,7 @@ def call(CALLBACK_BODY, APP_PREFIX, BILLING_API_HOST, buildCallback){
     def SLACK_USER_NAME;
 
     stage('Parse Notification') {
-      prInfo = getPullRequestInfoByNotification CALLBACK_BODY;
+      prInfo = getPullRequestInfoByNotification(CALLBACK_BODY, awsProfileName);
       NOTIFICATION_TYPE = prInfo.NOTIFICATION_TYPE
 
       PULL_REQUEST_STATUS = prInfo.PULL_REQUEST_STATUS

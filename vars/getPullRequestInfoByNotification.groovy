@@ -2,7 +2,7 @@ import com.cloudbees.groovy.cps.NonCPS
 import groovy.json.JsonSlurper
 
 
-def call(String sqs_body) {
+def call(String sqs_body, String awsProfileName) {
 
     def parsed = new JsonSlurper().parseText(sqs_body)
 
@@ -28,7 +28,7 @@ def call(String sqs_body) {
     }
 
 
-    def pullRequest = retrieveDataFromAws(PULL_REQUEST_ID)
+    def pullRequest = retrieveDataFromAws(PULL_REQUEST_ID, awsProfileName)
 
     def params = [
             'PULL_REQUEST_TITLE'                : pullRequest.title,
@@ -49,9 +49,9 @@ def call(String sqs_body) {
 }
 
 @NonCPS
-static retrieveDataFromAws(String PULL_REQUEST_ID) {
+static retrieveDataFromAws(String PULL_REQUEST_ID, String awsProfileName) {
 
-    GString shellScript = "aws codecommit get-pull-request --pull-request-id $PULL_REQUEST_ID"
+    GString shellScript = "aws codecommit get-pull-request --pull-request-id $PULL_REQUEST_ID --profile $awsProfileName"
     def result = (shellScript.execute().text)
     def parsedInfo = new JsonSlurper().parseText(result)
     def pullRequest = parsedInfo.pullRequest

@@ -1,4 +1,4 @@
-def call(CALLBACK_BODY, APP_PREFIX, BILLING_API_HOST, buildCallback, awsProfileName){
+def call(CALLBACK_BODY, APP_PREFIX, BILLING_API_HOST, buildCallback, awsProfileName) {
   node {
 
     def NOTIFICATION_TYPE;
@@ -60,7 +60,8 @@ def call(CALLBACK_BODY, APP_PREFIX, BILLING_API_HOST, buildCallback, awsProfileN
 
       def commitInfo = executeAWSCliCommand("codecommit", "get-commit", [
           "commit-id"      : PULL_REQUEST_SOURCE_COMMIT,
-          "repository-name": "webstore"
+          "repository-name": "webstore",
+          "profile"        : awsProfileName
       ])
 
       if (commitInfo.commit.author.email == 'jenkins@playwing.com') {

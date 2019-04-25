@@ -133,7 +133,7 @@ def call(CALLBACK_BODY, APP_PREFIX, BILLING_API_HOST, buildCallback, awsProfileN
       println "Successfully removed"
       if (PULL_REQUEST_IS_MERGED) {
         sh "git init"
-        sh "git push $SSH_WEBSTORE_REPO :$PULL_REQUEST_SOURCE_REFERENCE";
+        //sh "git push $SSH_WEBSTORE_REPO :$PULL_REQUEST_SOURCE_REFERENCE";
         println "Removed branch";
       }
     }

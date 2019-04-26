@@ -67,6 +67,8 @@ def call(awsProfileName, gitRepo, repoName, reviewerSlackName, reviewerJenkinsNa
     def IS_PRE_MERGE_SUCCESSFUL = false;
 
     stage('Pre-review merging') {
+
+      sh 'git config credential.helper cache'
       checkout changelog: true, poll: false, scm: [
           $class                           : 'GitSCM',
           branches                         : [[name: SOURCE_REFERENCE]],
@@ -105,7 +107,9 @@ def call(awsProfileName, gitRepo, repoName, reviewerSlackName, reviewerJenkinsNa
 
       sh "git push origin HEAD:${SOURCE_REFERENCE}"
       IS_PRE_MERGE_SUCCESSFUL = true;
+      sh "git config --unset credential.helper"
     }
+
 
     if (!IS_PRE_MERGE_SUCCESSFUL) {
       currentBuild.description += "Cannot merge because of conflicts.<br>"

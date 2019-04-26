@@ -1,16 +1,16 @@
 import groovy.json.JsonSlurper
 import hudson.model.*
 
-LinkedHashMap call(String jiraIssueKey, String whitelistedDestination) {
+LinkedHashMap call(String jiraIssueKey, String whitelistedDestination, String awsProfileName, String repoName) {
 
     println "Retrieveing opened pull requests..."
-    def openedPullRequestsList = fetchOpenedPullRequestIds()
+    def openedPullRequestsList = fetchOpenedPullRequestIds(awsProfileName, repoName)
 
     def result = ['result':false];
     for (id in openedPullRequestsList) {
 
         print "Retrieveing data for pull request: " + id + "... ";
-        def pullRequest = fetchPullRequestData(id);
+        def pullRequest = fetchPullRequestData(id, awsProfileName);
         def destinationReference = pullRequest.pullRequestTargets.destinationReference[0];
 
         if (destinationReference != whitelistedDestination) {
@@ -49,17 +49,17 @@ LinkedHashMap call(String jiraIssueKey, String whitelistedDestination) {
 
 }
 
-def fetchPullRequestData(id) {
+def fetchPullRequestData(id, awsProfileName) {
 
-    def prInfoShellScript = "aws codecommit get-pull-request --pull-request-id $id"
+    def prInfoShellScript = "aws codecommit get-pull-request --pull-request-id $id --profile $awsProfileName"
     def prResult = prInfoShellScript.execute().text;
     def parsedPrInfo = new JsonSlurper().parseText(prResult);
 
     return parsedPrInfo.pullRequest;
 }
 
-def fetchOpenedPullRequestIds() {
-    def shellScript = "aws codecommit list-pull-requests --repository-name webstore --pull-request-status OPEN"
+def fetchOpenedPullRequestIds(repoName, awsProfileName) {
+    def shellScript = "aws codecommit list-pull-requests --repository-name $repoName --pull-request-status OPEN --profile $awsProfileName"
     def result = shellScript.execute().text;
     def parsedInfo = new JsonSlurper().parseText(result);
     return parsedInfo.pullRequestIds;

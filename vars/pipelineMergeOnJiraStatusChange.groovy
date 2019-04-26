@@ -1,4 +1,4 @@
-def call(awsProfileName, destinationRepo, reviewerSlackName, reviewerJenkinsName){
+def call(awsProfileName, destinationRepo, repoName, reviewerSlackName, reviewerJenkinsName){
   node {
 
     currentBuild.displayName = "Issue $JIRA_ISSUE_KEY was updated"
@@ -25,7 +25,12 @@ def call(awsProfileName, destinationRepo, reviewerSlackName, reviewerJenkinsName
 
     stage('Finding of proper pull request') {
       script {
-        def pullRequestData = getMatchPullRequestsByJiraIssueKey(JIRA_ISSUE_KEY, ALLOWED_DESTINATION, awsProfileName)
+        def pullRequestData = getMatchPullRequestsByJiraIssueKey(
+            JIRA_ISSUE_KEY,
+            ALLOWED_DESTINATION,
+            awsProfileName,
+            repoName
+        )
 
         IS_MATCHED = pullRequestData.result
 

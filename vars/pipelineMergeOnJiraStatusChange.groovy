@@ -68,6 +68,7 @@ def call(awsProfileName, gitRepo, repoName, reviewerSlackName, reviewerJenkinsNa
 
     stage('Pre-review merging') {
 
+      sh 'git init'
       sh 'git config credential.helper cache'
       checkout changelog: true, poll: false, scm: [
           $class                           : 'GitSCM',

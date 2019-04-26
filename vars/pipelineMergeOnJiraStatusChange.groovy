@@ -1,7 +1,6 @@
 def call(awsProfileName, gitRepo, repoName, reviewerSlackName, reviewerJenkinsName){
   node {
 
-    sh "git config --unset credential.helper"
     currentBuild.displayName = "Issue $JIRA_ISSUE_KEY was updated"
 
     def builds = getJenkinsBuilds(JOB_NAME, true)

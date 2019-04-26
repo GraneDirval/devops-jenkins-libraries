@@ -58,8 +58,9 @@ def fetchPullRequestData(id, awsProfileName) {
     return parsedPrInfo.pullRequest;
 }
 
-def fetchOpenedPullRequestIds(repoName, awsProfileName) {
+def fetchOpenedPullRequestIds(String repoName, String awsProfileName) {
     def shellScript = "aws codecommit list-pull-requests --repository-name $repoName --pull-request-status OPEN --profile $awsProfileName"
+    println shellScript;
     def result = shellScript.execute().text;
     def parsedInfo = new JsonSlurper().parseText(result);
     return parsedInfo.pullRequestIds;

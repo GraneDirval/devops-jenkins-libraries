@@ -1,4 +1,4 @@
-def call(awsProfileName, destinationRepo, repoName, reviewerSlackName, reviewerJenkinsName){
+def call(awsProfileName, gitRepo, repoName, reviewerSlackName, reviewerJenkinsName){
   node {
 
     currentBuild.displayName = "Issue $JIRA_ISSUE_KEY was updated"
@@ -77,7 +77,7 @@ def call(awsProfileName, destinationRepo, repoName, reviewerSlackName, reviewerJ
 
           ],
           submoduleCfg                     : [],
-          userRemoteConfigs                : [[url: destinationRepo]]
+          userRemoteConfigs                : [gitRepo]
       ]
 
       try {

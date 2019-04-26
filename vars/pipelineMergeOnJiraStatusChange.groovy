@@ -1,6 +1,7 @@
 def call(awsProfileName, gitRepo, repoName, reviewerSlackName, reviewerJenkinsName){
   node {
 
+    sh "git config --unset credential.helper"
     currentBuild.displayName = "Issue $JIRA_ISSUE_KEY was updated"
 
     def builds = getJenkinsBuilds(JOB_NAME, true)
@@ -107,7 +108,6 @@ def call(awsProfileName, gitRepo, repoName, reviewerSlackName, reviewerJenkinsNa
 
       sh "git push origin HEAD:${SOURCE_REFERENCE}"
       IS_PRE_MERGE_SUCCESSFUL = true;
-      sh "git config --unset credential.helper"
     }
 
 
@@ -219,6 +219,9 @@ def call(awsProfileName, gitRepo, repoName, reviewerSlackName, reviewerJenkinsNa
       jiraComment body: "Successfully merged PR-${PULL_REQUEST_ID}.", issueKey: JIRA_ISSUE_KEY
       def slackComment = "Successfully merged PR-${PULL_REQUEST_ID} (${JIRA_ISSUE_KEY})."
       slackSend color: 'good', message: slackComment, channel: "@${SLACK_USER_NAME}"
+      sh "git config --unset credential.helper"
+
     }
+
   }
 }

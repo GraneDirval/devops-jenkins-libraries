@@ -1,4 +1,4 @@
-def call(awsProfileName, gitRepo, repoName, reviewerSlackName, reviewerJenkinsName){
+def call(awsProfileName, gitRepo, repoName, reviewerList, prLinkCallback) {
   node {
 
     currentBuild.displayName = "Issue $JIRA_ISSUE_KEY was updated"
@@ -22,6 +22,8 @@ def call(awsProfileName, gitRepo, repoName, reviewerSlackName, reviewerJenkinsNa
     def SOURCE_COMMIT;
     def SOURCE_REFERENCE;
     def IS_PRE_MERGE_COMMIT_CREATED;
+
+
 
     stage('Finding of proper pull request') {
       script {
@@ -116,71 +118,74 @@ def call(awsProfileName, gitRepo, repoName, reviewerSlackName, reviewerJenkinsNa
       return
     }
 
+    if (reviewerList.size > 0) {
+      def randomValue = new Random();
+      def selectedReviewer = reviewerList[randomValue.nextInt(reviewerList.size)];
+      def reviewerSlackName = selectedReviewer[0];
+      def reviewerJenkinsName = selectedReviewer[1];
 
-    if (reviewerSlackName != SLACK_USER_NAME) {
-      /*  if (true) {*/
+      if (reviewerSlackName != SLACK_USER_NAME) {
+//          if (true) {
 
-      def codecommitLink = "https://eu-west-1.console.aws.amazon.com/codecommit/home"
-      def prLink = "<${codecommitLink}?region=eu-west-1&status=OPEN#/repository/webstore/pull-request/$PULL_REQUEST_ID/changes|PR-${PULL_REQUEST_ID}>"
+        try {
+          stage('Waiting for Approval') {
 
-      try {
+            def prLink = prLinkCallback(PULL_REQUEST_ID);
+            def prResolutionLink = "<${BUILD_URL}input|here>"
 
-        stage('Waiting for Approval') {
+            slackSend color: 'C0C0C0', message: "$prLink (${JIRA_ISSUE_KEY}) waiting for your approval ${prResolutionLink}.", channel: "@${reviewerSlackName}"
+            slackSend color: 'C0C0C0', message: "$prLink (${JIRA_ISSUE_KEY}) have no conflicts.\nWaiting for approval of reviewer.", channel: "@${SLACK_USER_NAME}"
 
-          def prResolutionLink = "<${BUILD_URL}input|here>"
-
-          slackSend color: 'C0C0C0', message: "$prLink (${JIRA_ISSUE_KEY}) waiting for your approval ${prResolutionLink}.", channel: "@${reviewerSlackName}"
-          slackSend color: 'C0C0C0', message: "$prLink (${JIRA_ISSUE_KEY}) have no conflicts.\nWaiting for approval of reviewer.", channel: "@${SLACK_USER_NAME}"
-
-          while (true) {
-            try {
-              timeout(time: 60, unit: 'MINUTES') {
-                input message: "Is PR-$PULL_REQUEST_ID ok?", submitter: reviewerJenkinsName, id: 'code-review-input'
-              }
-              break;
-            } catch (Exception err) {
-
-              if (!isTimeoutException(err)) {
-                throw err
-              }
-
-              def response = executeAWSCliCommand("codecommit", "get-pull-request", [
-                  "pull-request-id": PULL_REQUEST_ID,
-                  "profile": awsProfileName
-              ])
-
-              if (response.pullRequest.pullRequestStatus == 'CLOSED') {
-                slackSend color: 'C0C0C0', message: "$prLink (${JIRA_ISSUE_KEY}) is already closed. No need to review.\nProbably it was manually merged by someone or JIRA issue status change was triggered multiple times.", channel: "@${reviewerSlackName}"
-                println "Pull Request is closed - aborting";
-                currentBuild.result = 'ABORTED'
+            while (true) {
+              try {
+                timeout(time: 60, unit: 'MINUTES') {
+                  input message: "Is PR-$PULL_REQUEST_ID ok?", submitter: reviewerJenkinsName, id: 'code-review-input'
+                }
                 break;
-              } else {
+              } catch (Exception err) {
 
-                if (isWorkingTime()) {
-                  println "Sending reminder"
-                  slackSend color: 'C0C0C0', message: "Reminder: ${prLink} (${JIRA_ISSUE_KEY}) is waiting for your approval ${prResolutionLink}.", channel: "@${reviewerSlackName}"
+                if (!isTimeoutException(err)) {
+                  throw err
+                }
+
+                def response = executeAWSCliCommand("codecommit", "get-pull-request", [
+                    "pull-request-id": PULL_REQUEST_ID,
+                    "profile"        : awsProfileName
+                ])
+
+                if (response.pullRequest.pullRequestStatus == 'CLOSED') {
+                  slackSend color: 'C0C0C0', message: "$prLink (${JIRA_ISSUE_KEY}) is already closed. No need to review.\nProbably it was manually merged by someone or JIRA issue status change was triggered multiple times.", channel: "@${reviewerSlackName}"
+                  println "Pull Request is closed - aborting";
+                  currentBuild.result = 'ABORTED'
+                  break;
                 } else {
-                  println "Not working time - is not neccessary to send reminder";
+
+                  if (isWorkingTime()) {
+                    println "Sending reminder"
+                    slackSend color: 'C0C0C0', message: "Reminder: ${prLink} (${JIRA_ISSUE_KEY}) is waiting for your approval ${prResolutionLink}.", channel: "@${reviewerSlackName}"
+                  } else {
+                    println "Not working time - is not neccessary to send reminder";
+                  }
                 }
               }
             }
           }
+
+        } catch (Exception e) {
+          slackSend color: 'FF0000', message: "Your $prLink (${JIRA_ISSUE_KEY}) is declined by reviewer.", channel: "@${SLACK_USER_NAME}"
+          jiraTransitionIssueByName(JIRA_ISSUE_KEY, "Changes Requested")
+          jiraComment body: "Changes has been requested for PR-${PULL_REQUEST_ID}.", issueKey: JIRA_ISSUE_KEY
+
+          return
         }
 
-      } catch (Exception e) {
-        slackSend color: 'FF0000', message: "Your $prLink (${JIRA_ISSUE_KEY}) is declined by reviewer.", channel: "@${SLACK_USER_NAME}"
-        jiraTransitionIssueByName(JIRA_ISSUE_KEY, "Changes Requested")
-        jiraComment body: "Changes has been requested for PR-${PULL_REQUEST_ID}.", issueKey: JIRA_ISSUE_KEY
+        if (currentBuild.result == 'ABORTED') {
+          return;
+        }
 
-        return
+      } else {
+        println "Reviewer ($reviewerSlackName) and commit author ($SLACK_USER_NAME) are same - skipping step"
       }
-
-      if (currentBuild.result == 'ABORTED') {
-        return;
-      }
-
-    } else {
-      println "Reviewer ($reviewerSlackName) and commit author ($SLACK_USER_NAME) are same - skipping step"
     }
 
 

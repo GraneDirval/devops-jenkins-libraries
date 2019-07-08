@@ -124,13 +124,14 @@ def call(awsProfileName, gitRepo, repoName, reviewerList, prLinkCallback) {
       def reviewerSlackName = selectedReviewer[0];
       def reviewerJenkinsName = selectedReviewer[1];
 
+      def prLink = prLinkCallback(PULL_REQUEST_ID);
+
       if (reviewerSlackName != SLACK_USER_NAME) {
 //          if (true) {
 
         try {
           stage('Waiting for Approval') {
 
-            def prLink = prLinkCallback(PULL_REQUEST_ID);
             def prResolutionLink = "<${BUILD_URL}input|here>"
 
             slackSend color: 'C0C0C0', message: "$prLink (${JIRA_ISSUE_KEY}) waiting for your approval ${prResolutionLink}.", channel: "@${reviewerSlackName}"

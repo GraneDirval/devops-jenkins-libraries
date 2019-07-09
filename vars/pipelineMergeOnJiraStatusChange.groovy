@@ -124,7 +124,8 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
     }
 
 
-    if (!isInReviewerList(SLACK_USER_NAME, primaryReviewerList)) {
+//    if (!isInReviewerList(SLACK_USER_NAME, primaryReviewerList)) {
+    if (true) {
 
 
       List mergedReviewerList = primaryReviewerList;

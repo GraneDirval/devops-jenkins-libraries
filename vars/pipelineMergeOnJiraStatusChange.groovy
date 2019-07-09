@@ -134,7 +134,11 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
       );
 
       if (secondaryReviewer) {
+
         mergedReviewerList << secondaryReviewer;
+        jiraComment body: "${secondaryReviewer[0]} is selected as reviewer for this issue", issueKey: JIRA_ISSUE_KEY
+
+
       } else {
         println "No secondary reviewers are present"
       }

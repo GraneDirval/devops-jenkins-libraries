@@ -269,7 +269,7 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
 }
 
 
-static void sendMessageToReviewers(message, List reviewers) {
+def sendMessageToReviewers(message, List reviewers) {
   for (reviewer in reviewers) {
     def reviewerSlackName = reviewer[0];
     slackSend color: 'C0C0C0',
@@ -278,11 +278,11 @@ static void sendMessageToReviewers(message, List reviewers) {
   }
 }
 
-static void sendMessageToSlack(message, slackUser, color) {
+def sendMessageToSlack(message, slackUser, color) {
   slackSend color: color, message: message, channel: "@${slackUser}"
 }
 
-static Boolean isInReviewerList(slackUser, List reviewers) {
+def isInReviewerList(slackUser, List reviewers) {
 
   for (reviewer in reviewers) {
     String reviewerSlackName = reviewer[0];

@@ -1,4 +1,4 @@
-def call(awsProfileName, gitRepo, repoName, reviewerList, prLinkCallback) {
+def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secondaryReviewerList, prLinkCallback) {
   node {
 
     currentBuild.displayName = "Issue $JIRA_ISSUE_KEY was updated"
@@ -54,7 +54,7 @@ def call(awsProfileName, gitRepo, repoName, reviewerList, prLinkCallback) {
     }
 
 
-    def SLACK_USER_NAME;
+    GString SLACK_USER_NAME;
     withCredentials([string(credentialsId: 'jenkins-bot-oauth-key', variable: 'TOKEN')]) {
       def profiles = slackGetUserList(TOKEN)
       println JIRA_ISSUE_ASSIGNEE_EMAIL
@@ -66,12 +66,13 @@ def call(awsProfileName, gitRepo, repoName, reviewerList, prLinkCallback) {
 
     currentBuild.description = "Processing PR-$PULL_REQUEST_ID.<br>"
 
-    def IS_PRE_MERGE_SUCCESSFUL = false;
+    Boolean IS_PRE_MERGE_SUCCESSFUL = false;
 
     stage('Pre-review merging') {
 
       sh 'git init'
       sh 'git config credential.helper cache'
+
       checkout changelog: true, poll: false, scm: [
           $class                           : 'GitSCM',
           branches                         : [[name: SOURCE_REFERENCE]],
@@ -91,8 +92,12 @@ def call(awsProfileName, gitRepo, repoName, reviewerList, prLinkCallback) {
         jiraComment body: "Cannot merge PR-${PULL_REQUEST_ID}.\nPlease resolve branch conflicts.", issueKey: JIRA_ISSUE_KEY
         jiraTransitionIssueByName(JIRA_ISSUE_KEY, "Merge Failed")
 
-        def slackComment = "Cannot merge PR-${PULL_REQUEST_ID} (${JIRA_ISSUE_KEY}).\nPlease resolve branch conflicts."
-        slackSend color: 'FF0000', message: slackComment, channel: "@${SLACK_USER_NAME}"
+        sendMessageToSlack(
+            "Cannot merge PR-${PULL_REQUEST_ID} (${JIRA_ISSUE_KEY}).\nPlease resolve branch conflicts.",
+            SLACK_USER_NAME,
+            "FF0000"
+        )
+
         IS_PRE_MERGE_SUCCESSFUL = false;
         return;
       }
@@ -118,77 +123,99 @@ def call(awsProfileName, gitRepo, repoName, reviewerList, prLinkCallback) {
       return
     }
 
-    if (reviewerList.size > 0) {
-      def randomValue = new Random();
-      def selectedReviewer = reviewerList[randomValue.nextInt(reviewerList.size)];
-      def reviewerSlackName = selectedReviewer[0];
-      def reviewerJenkinsName = selectedReviewer[1];
 
-      def prLink = prLinkCallback(PULL_REQUEST_ID);
+    if (!isInReviewerList(SLACK_USER_NAME, primaryReviewerList)) {
 
-      if (reviewerSlackName != SLACK_USER_NAME) {
-//          if (true) {
 
-        try {
-          stage('Waiting for Approval') {
+      List mergedReviewerList = primaryReviewerList;
 
-            def prResolutionLink = "<${BUILD_URL}input|here>"
+      if (secondaryReviewerList.size > 0) {
+        Random randomValue = new Random();
+        secondaryReviewer = secondaryReviewerList[randomValue.nextInt(secondaryReviewerList.size)];
+        mergedReviewerList << secondaryReviewer;
+      } else {
+        println "No secondary reviewers are present"
+      }
 
-            slackSend color: 'C0C0C0', message: "$prLink (${JIRA_ISSUE_KEY}) waiting for your approval ${prResolutionLink}.", channel: "@${reviewerSlackName}"
-            slackSend color: 'C0C0C0', message: "$prLink (${JIRA_ISSUE_KEY}) have no conflicts.\nWaiting for approval of reviewer.", channel: "@${SLACK_USER_NAME}"
 
-            while (true) {
-              try {
-                timeout(time: 60, unit: 'MINUTES') {
-                  input message: "Is PR-$PULL_REQUEST_ID ok?", submitter: reviewerJenkinsName, id: 'code-review-input'
-                }
+      try {
+        stage('Waiting for Approval') {
+
+          GString prResolutionLink = "<${BUILD_URL}input|here>"
+          String prLink = prLinkCallback(PULL_REQUEST_ID);
+
+          sendMessageToReviewers(
+              "$prLink (${JIRA_ISSUE_KEY}) waiting for your approval ${prResolutionLink}.",
+              mergedReviewerList
+          )
+
+          sendMessageToSlack(
+              "$prLink (${JIRA_ISSUE_KEY}) have no conflicts.\nWaiting for approval of reviewer.",
+              SLACK_USER_NAME,
+              "C0C0C0"
+          )
+
+
+          while (true) {
+            try {
+              timeout(time: 60, unit: 'MINUTES') {
+                input message: "Is PR-$PULL_REQUEST_ID ok?",
+                    submitter: reviewerJenkinsString,
+                    id: 'code-review-input'
+              }
+              break;
+            } catch (Exception err) {
+              if (!isTimeoutException(err)) {
+                throw err
+              }
+
+              def response = executeAWSCliCommand("codecommit", "get-pull-request", [
+                  "pull-request-id": PULL_REQUEST_ID,
+                  "profile"        : awsProfileName
+              ])
+
+              if (response.pullRequest.pullRequestStatus == 'CLOSED') {
+                sendMessageToReviewers(
+                    "$prLink (${JIRA_ISSUE_KEY}) is already closed. No need to review.\nProbably it was manually merged by someone or JIRA issue status change was triggered multiple times.",
+                    mergedReviewerList
+                )
+
+                println "Pull Request is closed - aborting";
+                currentBuild.result = 'ABORTED'
                 break;
-              } catch (Exception err) {
-
-                if (!isTimeoutException(err)) {
-                  throw err
-                }
-
-                def response = executeAWSCliCommand("codecommit", "get-pull-request", [
-                    "pull-request-id": PULL_REQUEST_ID,
-                    "profile"        : awsProfileName
-                ])
-
-                if (response.pullRequest.pullRequestStatus == 'CLOSED') {
-                  slackSend color: 'C0C0C0', message: "$prLink (${JIRA_ISSUE_KEY}) is already closed. No need to review.\nProbably it was manually merged by someone or JIRA issue status change was triggered multiple times.", channel: "@${reviewerSlackName}"
-                  println "Pull Request is closed - aborting";
-                  currentBuild.result = 'ABORTED'
-                  break;
+              } else {
+                if (isWorkingTime()) {
+                  println "Sending reminder"
+                  sendMessageToReviewers(
+                      "Reminder: ${prLink} (${JIRA_ISSUE_KEY}) is waiting for your approval ${prResolutionLink}.",
+                      mergedReviewerList
+                  )
                 } else {
-
-                  if (isWorkingTime()) {
-                    println "Sending reminder"
-                    slackSend color: 'C0C0C0', message: "Reminder: ${prLink} (${JIRA_ISSUE_KEY}) is waiting for your approval ${prResolutionLink}.", channel: "@${reviewerSlackName}"
-                  } else {
-                    println "Not working time - is not neccessary to send reminder";
-                  }
+                  println "Not working time - is not neccessary to send reminder";
                 }
               }
             }
           }
-
-        } catch (Exception e) {
-          slackSend color: 'FF0000', message: "Your $prLink (${JIRA_ISSUE_KEY}) is declined by reviewer.", channel: "@${SLACK_USER_NAME}"
-          jiraTransitionIssueByName(JIRA_ISSUE_KEY, "Changes Requested")
-          jiraComment body: "Changes has been requested for PR-${PULL_REQUEST_ID}.", issueKey: JIRA_ISSUE_KEY
-
-          return
         }
+      } catch (Exception e) {
 
-        if (currentBuild.result == 'ABORTED') {
-          return;
-        }
+        sendMessageToSlack(
+            "Your $prLink (${JIRA_ISSUE_KEY}) is declined by reviewer.",
+            SLACK_USER_NAME,
+            "FF0000"
+        )
 
-      } else {
-        println "Reviewer ($reviewerSlackName) and commit author ($SLACK_USER_NAME) are same - skipping step"
+        jiraTransitionIssueByName(JIRA_ISSUE_KEY, "Changes Requested")
+        jiraComment body: "Changes has been requested for PR-${PULL_REQUEST_ID}.", issueKey: JIRA_ISSUE_KEY
+
+        return
       }
-    }
 
+      if (currentBuild.result == 'ABORTED') {
+        return;
+      }
+
+    }
 
     stage("Pushing to remote") {
 
@@ -196,11 +223,16 @@ def call(awsProfileName, gitRepo, repoName, reviewerList, prLinkCallback) {
         sh "git fetch origin stage"
         sh "git merge origin/stage --no-commit";
       } catch (Exception e) {
+
         jiraComment body: "Cannot merge PR-${PULL_REQUEST_ID}.\nPlease resolve branch conflicts.", issueKey: JIRA_ISSUE_KEY
         jiraTransitionIssueByName(JIRA_ISSUE_KEY, "Merge Failed")
 
-        def slackComment = "Cannot merge PR-${PULL_REQUEST_ID} (${JIRA_ISSUE_KEY}).\nPlease resolve branch conflicts."
-        slackSend color: 'FF0000', message: slackComment, channel: "@${SLACK_USER_NAME}"
+        sendMessageToSlack(
+            "Cannot merge PR-${PULL_REQUEST_ID} (${JIRA_ISSUE_KEY}).\nPlease resolve branch conflicts.",
+            SLACK_USER_NAME,
+            'FF0000'
+        )
+
         return;
       }
 
@@ -218,7 +250,7 @@ def call(awsProfileName, gitRepo, repoName, reviewerList, prLinkCallback) {
 
       }
 
-      sh "git push origin HEAD:stage"
+      //sh "git push origin HEAD:stage"
       println "Pushed successfully";
       jiraTransitionIssueByName(JIRA_ISSUE_KEY, "Done")
 
@@ -230,4 +262,30 @@ def call(awsProfileName, gitRepo, repoName, reviewerList, prLinkCallback) {
     }
 
   }
+}
+
+
+static void sendMessageToReviewers(GString message, List reviewers) {
+  for (reviewer in reviewers) {
+    def reviewerSlackName = reviewer[0];
+    slackSend color: 'C0C0C0',
+        message: message,
+        channel: "@${reviewerSlackName}"
+  }
+}
+
+static void sendMessageToSlack(GString message, GString slackUser, String color) {
+  slackSend color: color, message: message, channel: "@${slackUser}"
+}
+
+static Boolean isInReviewerList(String slackUser, List reviewers) {
+
+  for (reviewer in reviewers) {
+    String reviewerSlackName = reviewer[0];
+
+    if (reviewerSlackName === slackUser) {
+      return true;
+    }
+  }
+  return false;
 }

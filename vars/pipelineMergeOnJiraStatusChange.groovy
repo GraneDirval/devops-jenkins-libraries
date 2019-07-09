@@ -128,20 +128,16 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
       println "Trying to assign secondary reviewer who is not an author as Code Reviewer"
       List mergedReviewerList = primaryReviewerList;
 
-      List filteredSecondaryReviewers = secondaryReviewerList.findAll {
-        it.value[0].toString() != SLACK_USER_NAME
-      }
+      def secondaryReviewer = findSecondaryReviewer(
+          secondaryReviewerList,
+          SLACK_USER_NAME
+      );
 
-      println filteredSecondaryReviewers;
-
-      if (filteredSecondaryReviewers.size > 0) {
-        Random randomValue = new Random();
-        secondaryReviewer = filteredSecondaryReviewers[randomValue.nextInt(filteredSecondaryReviewers.size)];
+      if (secondaryReviewer) {
         mergedReviewerList << secondaryReviewer;
       } else {
         println "No secondary reviewers are present"
       }
-
 
       String prLink = prLinkCallback(PULL_REQUEST_ID);
 
@@ -312,5 +308,22 @@ def makeJenkinsReviewersInputString(List reviewers) {
   }
 
   return names.join(',')
+
+}
+
+def findSecondaryReviewer(List secondaryReviewerList, ignoredUser) {
+
+  def secondaryReviewer = null;
+
+  List filteredSecondaryReviewers = secondaryReviewerList.findAll {
+    it.value[0].toString() != ignoredUser
+  }
+
+  if (filteredSecondaryReviewers.size > 0) {
+    Random randomValue = new Random();
+    secondaryReviewer = filteredSecondaryReviewers[randomValue.nextInt(filteredSecondaryReviewers.size)];
+  }
+
+  return secondaryReviewer;
 
 }

@@ -54,7 +54,7 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
     }
 
 
-    GString SLACK_USER_NAME;
+    def SLACK_USER_NAME;
     withCredentials([string(credentialsId: 'jenkins-bot-oauth-key', variable: 'TOKEN')]) {
       def profiles = slackGetUserList(TOKEN)
       println JIRA_ISSUE_ASSIGNEE_EMAIL
@@ -141,7 +141,7 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
       try {
         stage('Waiting for Approval') {
 
-          GString prResolutionLink = "<${BUILD_URL}input|here>"
+          def prResolutionLink = "<${BUILD_URL}input|here>"
           String prLink = prLinkCallback(PULL_REQUEST_ID);
 
           sendMessageToReviewers(
@@ -265,7 +265,7 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
 }
 
 
-static void sendMessageToReviewers(GString message, List reviewers) {
+static void sendMessageToReviewers(message, List reviewers) {
   for (reviewer in reviewers) {
     def reviewerSlackName = reviewer[0];
     slackSend color: 'C0C0C0',
@@ -274,11 +274,11 @@ static void sendMessageToReviewers(GString message, List reviewers) {
   }
 }
 
-static void sendMessageToSlack(GString message, GString slackUser, String color) {
+static void sendMessageToSlack(message, slackUser, color) {
   slackSend color: color, message: message, channel: "@${slackUser}"
 }
 
-static Boolean isInReviewerList(String slackUser, List reviewers) {
+static Boolean isInReviewerList(slackUser, List reviewers) {
 
   for (reviewer in reviewers) {
     String reviewerSlackName = reviewer[0];

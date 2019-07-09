@@ -1,6 +1,6 @@
 def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secondaryReviewerList, prLinkCallback) {
-  node {
 
+  node {
     currentBuild.displayName = "Issue $JIRA_ISSUE_KEY was updated"
 
     def builds = getJenkinsBuilds(JOB_NAME, true)

@@ -123,9 +123,7 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
       return
     }
 
-//    if (!isInReviewerList(SLACK_USER_NAME, primaryReviewerList)) {
-    if (true) {
-
+    if (!isInReviewerList(SLACK_USER_NAME, primaryReviewerList)) {
 
       List mergedReviewerList = primaryReviewerList;
 
@@ -170,8 +168,6 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
               break;
             } catch (Exception err) {
 
-              throw err;
-
               if (!isTimeoutException(err)) {
                 throw err
               }
@@ -205,8 +201,6 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
           }
         }
       } catch (Exception e) {
-
-        throw e;
 
         sendMessageToSlack(
             "Your $prLink (${JIRA_ISSUE_KEY}) is declined by reviewer.",
@@ -279,6 +273,7 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
 def sendMessageToReviewers(message, List reviewers) {
   for (reviewer in reviewers) {
     def reviewerSlackName = reviewer[0];
+    println "Sending message to reviewer $reviewerSlackName";
     slackSend color: 'C0C0C0',
         message: message,
         channel: "@${reviewerSlackName}"

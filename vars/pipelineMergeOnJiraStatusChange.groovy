@@ -123,7 +123,6 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
       return
     }
 
-
 //    if (!isInReviewerList(SLACK_USER_NAME, primaryReviewerList)) {
     if (true) {
 
@@ -159,6 +158,9 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
 
 
           while (true) {
+
+            def reviewerJenkinsString = makeJenkinsReviewersInputString(mergedReviewerList)
+
             try {
               timeout(time: 60, unit: 'MINUTES') {
                 input message: "Is PR-$PULL_REQUEST_ID ok?",
@@ -222,7 +224,7 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
         return;
       }
 
-    }else{
+    } else {
       println "Author is a Primary Reviewer - no need of review"
     }
 
@@ -297,4 +299,16 @@ def isInReviewerList(slackUser, List reviewers) {
     }
   }
   return false;
+}
+
+def makeJenkinsReviewersInputString(List reviewers) {
+
+  List names = [];
+
+  for (reviewer in reviewers) {
+    names << reviewer[1];
+  }
+
+  return names.join(',')
+
 }

@@ -215,6 +215,8 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
         return;
       }
 
+    }else{
+      println "Author is a Primary Reviewer - no need of review"
     }
 
     stage("Pushing to remote") {

@@ -204,6 +204,8 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
         }
       } catch (Exception e) {
 
+        throw e;
+
         sendMessageToSlack(
             "Your $prLink (${JIRA_ISSUE_KEY}) is declined by reviewer.",
             SLACK_USER_NAME,

@@ -283,7 +283,7 @@ static Boolean isInReviewerList(String slackUser, List reviewers) {
   for (reviewer in reviewers) {
     String reviewerSlackName = reviewer[0];
 
-    if (reviewerSlackName === slackUser) {
+    if (reviewerSlackName == slackUser) {
       return true;
     }
   }

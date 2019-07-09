@@ -139,11 +139,12 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
       }
 
 
+      String prLink = prLinkCallback(PULL_REQUEST_ID);
+
       try {
         stage('Waiting for Approval') {
 
           def prResolutionLink = "<${BUILD_URL}input|here>"
-          String prLink = prLinkCallback(PULL_REQUEST_ID);
 
           sendMessageToReviewers(
               "$prLink (${JIRA_ISSUE_KEY}) waiting for your approval ${prResolutionLink}.",

@@ -125,11 +125,16 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
 
     if (!isInReviewerList(SLACK_USER_NAME, primaryReviewerList)) {
 
+      println "Trying to assing secondary reviewer who is not an author"
       List mergedReviewerList = primaryReviewerList;
 
-      if (secondaryReviewerList.size > 0) {
+      List filteredSecondaryReviewers = secondaryReviewerList.findAll {
+        it.value[0] != SLACK_USER_NAME
+      }
+
+      if (filteredSecondaryReviewers.size > 0) {
         Random randomValue = new Random();
-        secondaryReviewer = secondaryReviewerList[randomValue.nextInt(secondaryReviewerList.size)];
+        secondaryReviewer = filteredSecondaryReviewers[randomValue.nextInt(filteredSecondaryReviewers.size)];
         mergedReviewerList << secondaryReviewer;
       } else {
         println "No secondary reviewers are present"

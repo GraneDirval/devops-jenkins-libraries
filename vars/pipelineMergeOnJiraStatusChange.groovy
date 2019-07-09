@@ -167,6 +167,9 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
               }
               break;
             } catch (Exception err) {
+
+              throw err;
+
               if (!isTimeoutException(err)) {
                 throw err
               }

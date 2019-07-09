@@ -129,8 +129,11 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
       List mergedReviewerList = primaryReviewerList;
 
       List filteredSecondaryReviewers = secondaryReviewerList.findAll {
+        println it.value;
         it.value[0] != SLACK_USER_NAME
       }
+
+      println filteredSecondaryReviewers;
 
       if (filteredSecondaryReviewers.size > 0) {
         Random randomValue = new Random();

@@ -125,12 +125,11 @@ def call(awsProfileName, gitRepo, repoName, List primaryReviewerList, List secon
 
     if (!isInReviewerList(SLACK_USER_NAME, primaryReviewerList)) {
 
-      println "Trying to assing secondary reviewer who is not an author"
+      println "Trying to assign secondary reviewer who is not an author as Code Reviewer"
       List mergedReviewerList = primaryReviewerList;
 
       List filteredSecondaryReviewers = secondaryReviewerList.findAll {
-        println it.value;
-        it.value[0] != SLACK_USER_NAME
+        it.value[0].toString() != SLACK_USER_NAME
       }
 
       println filteredSecondaryReviewers;

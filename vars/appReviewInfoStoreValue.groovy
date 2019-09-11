@@ -17,6 +17,9 @@ def call(APP_ID, key, value){
 
   writeToExternalJsonFile(path, data)
 
+  reviewInfo = null;
+  data = null;
+
 }
 
 

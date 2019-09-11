@@ -11,7 +11,12 @@ def call(APP_ID, key, value){
     data = reviewInfo;
   }
 
+
+  print data;
+
   data[key] = value
+
+  print data;
 
   GString path = "/var/app/${APP_ID}/config/review.json"
 

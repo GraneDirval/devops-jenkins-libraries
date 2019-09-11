@@ -1,3 +1,4 @@
+@NonCPS
 def call(APP_ID, key, value){
 
   def reviewInfo = appReviewInfoRetrieve(APP_ID);

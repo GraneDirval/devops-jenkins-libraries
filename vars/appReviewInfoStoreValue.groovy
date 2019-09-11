@@ -27,6 +27,6 @@ def getDefaultValue(){
       selectedReviewer: null
   ]
 
-  return  defaults;
+  return defaults;
 
 }

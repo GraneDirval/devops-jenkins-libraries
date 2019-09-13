@@ -13,5 +13,7 @@ def call (APP_ID){
 
   def reviewInfo = new JsonSlurper().parseText(result)
 
+  result = null;
+
   return reviewInfo
 }

@@ -1,4 +1,4 @@
-import groovy.json.JsonSlurper
+import groovy.json.JsonSlurperClassic
 
 @NonCPS
 def call (APP_ID){
@@ -11,7 +11,7 @@ def call (APP_ID){
     return null;
   }
 
-  def reviewInfo = new JsonSlurper().parseText(result)
+  def reviewInfo = new JsonSlurperClassic().parseText(result)
 
   result = null;
 

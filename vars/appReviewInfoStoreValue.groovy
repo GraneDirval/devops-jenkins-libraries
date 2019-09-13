@@ -16,6 +16,8 @@ def call(APP_ID, key, value){
 
   GString path = "/var/app/${APP_ID}/config/review.json"
 
+  println "Writing data to $path";
+
   writeToExternalJsonFile(path, data);
 
   reviewInfo = null;

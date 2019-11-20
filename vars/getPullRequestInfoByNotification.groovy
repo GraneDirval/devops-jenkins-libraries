@@ -6,38 +6,46 @@ def call(String sqs_body, String awsProfileName) {
 
     def parsed = new JsonSlurper().parseText(sqs_body)
 
-    def createPRexpression = (parsed.Message =~ /.*Pull Request ID as (\d+) and title as (.*)\..*/)
-    def updatePRexpression = (parsed.Message =~ /.*updated the following PullRequest (\d+)*/)
-
     String NOTIFICATION_TYPE = '';
     String PULL_REQUEST_ID = '';
 
-    if (createPRexpression.find()) {
-        PULL_REQUEST_ID = createPRexpression.group(1)
-        NOTIFICATION_TYPE = 'CREATE'
+    def eventTypeExpression = (parsed.Message =~ /Event: (.*?)\./)
+    if(eventTypeExpression.find()){
+
+        def result = eventTypeExpression.group(1)
+
+        if(result == 'Updated'){
+            NOTIFICATION_TYPE = 'UPDATE'
+        }
+
+        if(result == 'Created'){
+            NOTIFICATION_TYPE = 'CREATE'
+        }
     }
 
-    if (updatePRexpression.find()) {
-        PULL_REQUEST_ID = updatePRexpression.group(1)
-        NOTIFICATION_TYPE = 'UPDATE'
+    def prNameExpression = (parsed.Message =~ /Pull request name: (\d+)\./)
+    if (prNameExpression.find()) {
+        PULL_REQUEST_ID = prNameExpression.group(1)
     }
-
 
     if (PULL_REQUEST_ID == '' || NOTIFICATION_TYPE == '') {
-        throw new Exception('Cannot parse data from Notification Message. Seems like format changed or unsupported message type.');
+        throw new Exception("""
+            Cannot parse data from Notification Message. Seems like format changed or unsupported message type.\n
+            `${parsed.message}`            
+        """);
     }
 
 
     def pullRequest = retrieveDataFromAws(PULL_REQUEST_ID, awsProfileName)
 
     def params = [
-            'PULL_REQUEST_TITLE'                : pullRequest.title,
-            'PULL_REQUEST_STATUS'               : pullRequest.pullRequestStatus,
-            'PULL_REQUEST_SOURCE_COMMIT'        : pullRequest.pullRequestTargets.sourceCommit[0],
-            'PULL_REQUEST_SOURCE_REFERENCE'     : pullRequest.pullRequestTargets.sourceReference[0],
-            'PULL_REQUEST_DESTINATION_COMMIT'   : pullRequest.pullRequestTargets.destinationCommit[0],
-            'PULL_REQUEST_DESTINATION_REFERENCE': pullRequest.pullRequestTargets.destinationReference[0],
-            'PULL_REQUEST_IS_MERGED'            : pullRequest.pullRequestTargets.mergeMetadata.isMerged
+        'PULL_REQUEST_TITLE'                : pullRequest.title,
+        'PULL_REQUEST_STATUS'               : pullRequest.pullRequestStatus,
+        'PULL_REQUEST_SOURCE_COMMIT'        : pullRequest.pullRequestTargets.sourceCommit[0],
+        'PULL_REQUEST_SOURCE_REFERENCE'     : pullRequest.pullRequestTargets.sourceReference[0],
+        'PULL_REQUEST_DESTINATION_COMMIT'   : pullRequest.pullRequestTargets.destinationCommit[0],
+        'PULL_REQUEST_DESTINATION_REFERENCE': pullRequest.pullRequestTargets.destinationReference[0],
+        'PULL_REQUEST_IS_MERGED'            : pullRequest.pullRequestTargets.mergeMetadata.isMerged
     ]
 
     params.put('PULL_REQUEST_ID', PULL_REQUEST_ID);

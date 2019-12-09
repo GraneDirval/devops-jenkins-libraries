@@ -13,9 +13,6 @@ def call(APP_ID) {
         branchDigitId = 0
     }
     def webserverPort = 49152 + branchDigitId;
-
-    def subnet = branchDigitId % 254;
-
     expression = null;
 
     sh """
@@ -29,7 +26,7 @@ def call(APP_ID) {
                location / {
                    proxy_set_header Host \$host;
                    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-                   proxy_pass http://172.16.$subnet.2;               
+                   proxy_pass http://127.0.0.1:$webserverPort;               
                }
            }
        '> $nginxConfigFile
